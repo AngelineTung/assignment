@@ -21,10 +21,13 @@ jobs:
       status: ${{ job.status }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init  # ✅ THIS FIXES THE ERROR
+        run: terraform init -upgrade -backend=false
 
       - name: Terraform fmt
         run: terraform fmt -check
@@ -41,7 +44,7 @@ jobs:
 
       - name: Run TFLint
         run: tflint -f compact
-
+        
   snyk-checks:
     runs-on: ubuntu-latest
     needs: Initial-Checks
@@ -62,7 +65,7 @@ jobs:
       - name: Authenticate Snyk Token
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk auth $SNYK_TOKEN
+        run: snyk auth "$SNYK_TOKEN"
 
       - name: Snyk Open Source Scan
         run: snyk test --severity-threshold=high --report
@@ -72,6 +75,7 @@ jobs:
 
       - name: Snyk Code Scan
         run: snyk code test --report
+
 
 
   summary:
