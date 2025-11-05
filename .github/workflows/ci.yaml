@@ -49,30 +49,30 @@ jobs:
       status: ${{ job.status }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node (helps Snyk run faster)
-        uses: actions/setup-node@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Setup Snyk
+      - name: Install Snyk CLI
         uses: snyk/actions/setup@v4
 
       - name: Authenticate Snyk Token
-        run: echo "SNYK_TOKEN=${{ secrets.SNYK_TOKEN }}" >> $GITHUB_ENV
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk auth $SNYK_TOKEN
 
-      # Snyk Open Source dependency scan
-      - name: Snyk Test (Open Source)
+      - name: Snyk Open Source Scan
         run: snyk test --severity-threshold=high --report
 
-      # Snyk IaC scan (Terraform security analysis)
-      - name: Snyk IaC Test
+      - name: Snyk IaC Scan
         run: snyk iac test --report
 
-      # Snyk Code (SAST)
       - name: Snyk Code Scan
         run: snyk code test --report
+
 
   summary:
     needs: [terraform-checks, snyk-checks]
